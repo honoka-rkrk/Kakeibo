@@ -1,0 +1,141 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charest="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-firt=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://cdn.datatables.net/t/bs-3.3.6/jqc-1.12.0,dt-1.10.11/datatables.min.css"/>
+        <title>Tutorial</title>
+    </head>
+    <body>
+        {% block content %}
+        {% endblock %}
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js"></script>
+        <script src="https://cdn.datatables.net/t/bs-3.3.6/jqc-1.12.0,dt-1.10.11/datatables.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>
+
+        <script>
+            jQuery(function($){
+                $.extend( $.fn.dataTable.defaults,{
+                    language:{
+                        url:"http://cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Japanese.json"
+                    }
+                });
+                $("#kakeibo_list").DataTable({
+                    "searching":true,
+                    "paging":true,
+                    "ordering":true,
+                    "lengthChange":true,
+                }).columns.adjust().draw();
+            });
+        </script>
+
+<script>
+    var ctx=document.getElementById('CircleChart').getContext('2d');
+    var data=[
+        [
+            {% for key,value in category_dict.items %}
+                '{{key}}',
+            {% endfor %}
+        ],
+
+        [
+            {% for key,value in category_dict.items %}
+                {{value}},
+            {% endfor %}
+        ]
+    ]
+
+    var myChart =new Chart(ctx,{
+        type:'pie',
+
+        data:{
+            labels:data[0],
+            datasets:[{
+                data:data[1],
+                backgroundColor:[
+                    "rgba(255,241,15,0.8)","rgba(54,164,235,0.8)",
+                    "rgba(0,255,65,0.8)","rgba(214,216,165,0.8)","rgba(255,94,25,0.8)",
+                    "rgba(84,77,203,0.8)","rgba(140,140,140,0.8)","rgba(171,255,127,0.8)",
+                    "rgba(50,204,18,0.8)","rgba(234,210,173,0.8)"],
+            },
+            ] }
+    });
+</script>
+<!-- 折れ線グラフの設定 -->
+<script>
+    var ctx=document.getElementById('LineChart').getContext('2d');
+    var DiskChart = new Chart(ctx,{
+        type:'line',
+        data:{
+            labels:[
+                {% for item in x_label %}
+                    '{{item}}',
+                {% endfor %}
+            ],
+            datasets:[
+                {% for category_name in category_list %}
+                {
+                    label:"{{ category_name }}",
+                    fill:false,
+                    {% for category,color in border_color %}
+                        {% if category == category_name %}
+                            borderColor:"rgba({{color}})",
+                        {% endif %}
+                    {% endfor %}
+                    {% for cateogry,color in background_color %}
+                        {% if category == category_name %}
+                            backgroundColor:"rgba({{color}})",
+                        {% endif %}
+                    {% endfor %}
+                    data:[
+                        {% for time_label in x_label %}
+
+                            {% for date, category,total in matrix_list %}
+                                {% if category == category_name %}
+                                    {% if date == time_label %}
+                                        {{ total }},
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                    ],
+                },
+                {% endfor %}
+            ]
+        },
+        options:{
+            responsive:true,
+            scales:{
+                xAxes:[{
+                    scaleLabel:{
+                        display:true,
+                        labelString:'時間'
+                    },
+                ticks:{
+                    maxRotation:0,
+                    minRotation:0
+                },
+                }],
+                yAxes:[{
+                    scaleLabel:{
+                        display:true,
+                        labelString:'合計金額（円）'
+                    },
+                    ticks:{
+                        min:0,
+                    }
+                }],
+            },
+            title:{
+                display:true,
+                pocision:"top",
+                fontSize:30,
+                fontColor:"black",
+                text:"月毎の合計金額推移"
+            },
+        }
+    });
+</script>
+    </body>
+</html>
